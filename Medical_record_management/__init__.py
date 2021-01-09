@@ -1,6 +1,6 @@
 from flask import Flask
 
-from .app.routes import auth_app
+from .apps.auth_app_routes import auth_app
 from .database import db
 
 def create_app():
