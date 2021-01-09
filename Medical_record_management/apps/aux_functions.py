@@ -5,7 +5,16 @@ import uuid
 from Medical_record_management.models import Hospital, Patient, Doctor, HospitalService
 from Medical_record_management.database import db
   
-    
+
+def get_user(user_type, auth):
+    if user_type == 'patient':
+        user = Patient.query.filter_by(identification=auth.username).first()
+    elif user_type == 'hospital':
+        user = Hospital.query.filter_by(identification=auth.username).first()
+    elif user_type == 'doctor':
+        user = Doctor.query.filter_by(identification=auth.username).first()
+    return user
+
 def create_patient_user():
     extra_data = get_extra_data()
     user = Patient(
