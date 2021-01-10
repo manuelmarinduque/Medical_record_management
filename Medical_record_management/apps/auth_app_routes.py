@@ -1,39 +1,17 @@
 from flask import Blueprint, request, jsonify, make_response
 from werkzeug.security import check_password_hash
-from functools import wraps
-from jwt import encode, decode
+from jwt import encode
 from os import environ
 from sqlalchemy.exc import IntegrityError
 
 from Medical_record_management.database import db
 from .aux_functions import get_user, create_patient_user, create_hospital_user, create_doctor
+from .decorators import token_required
 
 import datetime
 
 
 auth_app = Blueprint('auth', __name__)
-
-def token_required(route):
-    @wraps(route)
-    def decorated(*args, **kwargs):
-        token = None
-
-        if 'x-access-token' in request.headers:
-            token = request.headers['x-access-token']
-
-        if not token:
-            return jsonify({'message': 'Token is missing'}), 401
-
-        try: 
-            data = decode(token, environ.get('SECRET_KEY'))
-            print(data)
-            current_user = get_user(public_id=data['public_id'])
-        except:
-            return jsonify({'message': 'Token is invalid'}), 401
-
-        return route(current_user, *args, **kwargs)
-
-    return decorated
 
 @auth_app.route("/create_user/<user_type>", methods=['POST'])
 def create_user(user_type):
@@ -69,7 +47,7 @@ def login():
     else:
         return make_response('Must enter an username or password', 401)
 
-@auth_app.route("/hospital/create_doctor", methods=['POST'])
+@auth_app.route("/user/hospital/create_doctor", methods=['POST'])
 @token_required
 def create_doctor_user(current_user):
 
