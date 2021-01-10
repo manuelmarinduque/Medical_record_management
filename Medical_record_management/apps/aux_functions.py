@@ -2,7 +2,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import request
 import uuid
 
-from Medical_record_management.models import Hospital, Patient, Doctor, HospitalService, DoctorSpeciality, MedicalRegister, MedicalSpeciality
+from Medical_record_management.models import (Hospital, Patient, Doctor, HospitalService, 
+    DoctorSpeciality, MedicalRegister, MedicalSpeciality)
 from Medical_record_management.database import db
   
 

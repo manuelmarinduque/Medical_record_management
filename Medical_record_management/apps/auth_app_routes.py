@@ -6,8 +6,7 @@ from sqlalchemy.exc import IntegrityError
 
 from Medical_record_management.database import db
 from .decorators import token_required
-from .aux_functions import (
-    save, get_user, create_patient_user, create_hospital_user, 
+from .aux_functions import (save, get_user, create_patient_user, create_hospital_user, 
     create_doctor, create_medical_register, get_doctor_specialities)
 
 import datetime
