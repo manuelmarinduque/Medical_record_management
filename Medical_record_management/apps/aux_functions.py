@@ -2,7 +2,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import request
 import uuid
 
-from Medical_record_management.models import Hospital, Patient, Doctor, HospitalService
+from Medical_record_management.models import Hospital, Patient, Doctor, HospitalService, DoctorSpeciality
 from Medical_record_management.database import db
   
 
@@ -10,8 +10,10 @@ def get_user(**kwargs):
     for class_type in (Patient, Hospital, Doctor):
         if 'auth' in kwargs:
             user = class_type.query.filter_by(identification=kwargs['auth'].username).first()
+        elif 'identification' in kwargs:
+            user = class_type.query.filter_by(identification=kwargs['identification']).first()
         elif 'public_id' in kwargs:
-            user = class_type.query.filter_by(public_id=kwargs['public_id'].username).first()
+            user = class_type.query.filter_by(public_id=kwargs['public_id']).first()
         if user:
             return user
 
@@ -26,15 +28,23 @@ def create_hospital_user(user_type):
     extra_data.pop('services')
     user = create_new_user(user_type, extra_data)
     save(user)
-    create_hospital_services(services, user.id)
+    create_services(services, user.id, user_type)
 
-def create_hospital_services(services, id):
+def create_services(services, id, user_type):
     for service in services:
-        new_service = HospitalService(hospital_id=id, service_id=service)
+        if user_type == 'hospital':
+            new_service = HospitalService(hospital_id=id, service_id=service)
+        elif user_type == 'doctor':
+            new_service = DoctorSpeciality(doctor_id=id, medical_speciality_id=service)
         save(new_service)
 
-def create_doctor_user():
-    pass
+def create_doctor(user_type):
+    extra_data = get_extra_data()
+    specialities = extra_data['specialities']
+    extra_data.pop('specialities')
+    user = create_new_user(user_type, extra_data)
+    save(user)
+    create_services(specialities, user.id, user_type)
 
 def create_new_user(user_type, extra_data):
     for class_type in (Patient, Hospital, Doctor):
