@@ -10,8 +10,6 @@ def get_user(**kwargs):
     for class_type in (Patient, Hospital, Doctor):
         if 'auth' in kwargs:
             user = class_type.query.filter_by(identification=kwargs['auth'].username).first()
-        elif 'identification' in kwargs:
-            user = class_type.query.filter_by(identification=kwargs['identification']).first()
         elif 'public_id' in kwargs:
             user = class_type.query.filter_by(public_id=kwargs['public_id']).first()
         if user:
@@ -48,7 +46,6 @@ def create_doctor(user_type):
 
 def create_new_user(user_type, extra_data):
     for class_type in (Patient, Hospital, Doctor):
-        print(class_type.__name__)
         if user_type.capitalize() == class_type.__name__:
             user = class_type(public_id=str(uuid.uuid4()), user_type=user_type, **extra_data)
             return user
