@@ -6,8 +6,8 @@ from sqlalchemy.exc import IntegrityError
 
 from Medical_record_management.database import db
 from .decorators import token_required
-from .aux_functions import (save, get_user, create_patient_user, create_hospital_user, 
-    create_doctor, create_medical_register, get_doctor_specialities)
+from .aux_functions import (save, get_user, create_patient_user, create_hospital_user,
+create_doctor, create_medical_register, get_doctor_specialities, get_medical_records)
 
 import datetime
 
@@ -54,7 +54,7 @@ def create_doctor_user(current_user):
     if not current_user.user_type == 'hospital':
         return make_response("You don't have permissions to perform this task.", 401)
     elif not current_user.is_verificated:
-        return jsonify({'message': 'You must verify your account. Please check your imbox.'})
+        return jsonify({'message': 'You must verify your account. Please check your email imbox.'})
     else:
         try:
             create_doctor('doctor')
@@ -65,9 +65,12 @@ def create_doctor_user(current_user):
 @auth_app.route('/user/account_confirmation/<public_id>', methods=['PUT'])
 def account_confirmation(public_id):
     user = get_user(public_id=public_id)
-    user.is_verificated = True
-    save()
-    return jsonify({'message' : f'The user {user.name} has the account verificated.'})
+    if not user:
+        return jsonify({'message' : "This user doen's exist"})
+    else:
+        user.is_verificated = True
+        save()
+        return jsonify({'message' : f'The user {user.name} has the account verificated.'})
 
 @auth_app.route('/user/change_password', methods=['PUT'])
 @token_required
@@ -81,7 +84,7 @@ def change_password(current_user):
         if current_user.user_type == 'doctor' and not current_user.password_changed:
             current_user.password_changed = True
         save()
-        return jsonify({'message' : 'The password has changed successfully.'})
+        return jsonify({'message': 'The password has been changed successfully.'})
 
 @auth_app.route('/doctor/medical_register', methods=['POST'])
 @token_required
@@ -90,9 +93,9 @@ def medical_register(current_user):
         return make_response("You don't have permissions to perform this task.", 401)
     else:        
         if not current_user.is_verificated:
-            return jsonify({'message': 'You must verify your account. Please check your imbox.'})
+            return jsonify({'message': 'You must verify your account. Please check your email imbox.'})
         elif not current_user.password_changed:
-            return jsonify({'message': 'You must change your password. Please visit '})
+            return jsonify({'message': 'You must change your password. '})
         else:
             doctor_specialities = get_doctor_specialities(current_user.id)
             print(doctor_specialities)
@@ -103,4 +106,16 @@ def medical_register(current_user):
                 return jsonify({'message': "The medical register was created successfully."})
             else:
                 return jsonify({'message': f"The doctor {current_user.name} doesn't have the selected speciality"})
-    
+
+@auth_app.route('/user/consult_medical_record')
+@token_required
+def consult_medical_record(current_user):
+    if not current_user.is_verificated:
+        return jsonify({'message': 'You must verify your account. Please check your email imbox.'})
+    if current_user.user_type == 'doctor' and not current_user.password_changed:
+        return jsonify({'message': 'You must change your password. '})
+    medical_records = get_medical_records(current_user)
+    if medical_records:
+        return jsonify({'data': medical_records})
+    else:
+        return jsonify({'message': f"{current_user.__class__.__name__} user doesn't have registers yet."})

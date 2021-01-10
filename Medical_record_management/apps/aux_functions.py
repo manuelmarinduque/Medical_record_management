@@ -2,8 +2,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import request
 import uuid
 
-from Medical_record_management.models import (Hospital, Patient, Doctor, HospitalService, 
-    DoctorSpeciality, MedicalRegister, MedicalSpeciality)
+from Medical_record_management.models import (Hospital, Patient, Doctor, HospitalService,
+DoctorSpeciality, MedicalRegister, MedicalSpeciality)
 from Medical_record_management.database import db
   
 
@@ -75,3 +75,26 @@ def save(element=None):
 def get_doctor_specialities(id):
     specialities = DoctorSpeciality.query.filter_by(doctor_id=id)
     return [speciality.medical_speciality_id for speciality in specialities]
+
+def get_medical_records(current_user):
+    if isinstance(current_user, Patient):
+        raw_records = MedicalRegister.query.filter_by(patient_id=current_user.id)
+    elif isinstance(current_user, Hospital):
+        raw_records = MedicalRegister.query.filter_by(hospital_id=current_user.id)
+    else:
+        raw_records = MedicalRegister.query.filter_by(doctor_id=current_user.id)
+        print(raw_records)
+    records = records_to_dict(raw_records)
+    return records
+
+def records_to_dict(raw_records):
+    records = [{'id':obj.id,
+                'patient_id':obj.patient_id,
+                'doctor_id':obj.doctor_id,
+                'hospital_id':obj.hospital_id,
+                'date':obj.date,
+                'medical_speciality':obj.medical_speciality,
+                'description':obj.description,
+                'health_state':obj.health_state
+                } for obj in raw_records]
+    return records
