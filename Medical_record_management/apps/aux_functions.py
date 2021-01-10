@@ -2,7 +2,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import request
 import uuid
 
-from Medical_record_management.models import Hospital, Patient, Doctor, HospitalService, DoctorSpeciality
+from Medical_record_management.models import Hospital, Patient, Doctor, HospitalService, DoctorSpeciality, MedicalRegister, MedicalSpeciality
 from Medical_record_management.database import db
   
 
@@ -56,7 +56,21 @@ def get_extra_data():
     data['password'] = hashed_password
     return data
 
+def create_medical_register(current_user, data, speciality):
+    medical_speciality = MedicalSpeciality.query.filter_by(id=speciality).first()
+    data.pop('medical_speciality')
+    register = MedicalRegister(
+        doctor_id = current_user.id,
+        hospital_id = current_user.hospital_id,
+        medical_speciality = medical_speciality.speciality_name,
+        **data)
+    save(register)
+
 def save(element=None):
     if element:
         db.session.add(element)
     db.session.commit()
+
+def get_doctor_specialities(id):
+    specialities = DoctorSpeciality.query.filter_by(doctor_id=id)
+    return [speciality.medical_speciality_id for speciality in specialities]

@@ -55,7 +55,7 @@ class Doctor(db.Model):
     hospital_id = db.Column(db.Integer, nullable=False)
 
 class MedicalSpeciality(db.Model):
-    id = db.Column(db.String(10), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     speciality_name = db.Column(db.String(20), nullable=False)
 
 class DoctorSpeciality(db.Model):
