@@ -15,24 +15,16 @@ def get_user(**kwargs):
         if user:
             return user
 
-def create_patient_user():
+def create_patient_user(user_type):
     extra_data = get_extra_data()
-    user = Patient(
-        public_id=str(uuid.uuid4()),
-        user_type='patient',
-        **extra_data
-    )
+    user = create_new_user(user_type, extra_data)
     save(user)
 
-def create_hospital_user():
+def create_hospital_user(user_type):
     extra_data = get_extra_data()
     services = extra_data['services']
     extra_data.pop('services')
-    user = Hospital(
-        public_id=str(uuid.uuid4()),
-        user_type='hospital',
-        **extra_data
-    )
+    user = create_new_user(user_type, extra_data)
     save(user)
     create_hospital_services(services, user.id)
 
@@ -40,6 +32,16 @@ def create_hospital_services(services, id):
     for service in services:
         new_service = HospitalService(hospital_id=id, service_id=service)
         save(new_service)
+
+def create_doctor_user():
+    pass
+
+def create_new_user(user_type, extra_data):
+    for class_type in (Patient, Hospital, Doctor):
+        print(class_type.__name__)
+        if user_type.capitalize() == class_type.__name__:
+            user = class_type(public_id=str(uuid.uuid4()), user_type=user_type, **extra_data)
+            return user
 
 def get_extra_data():
     data = request.get_json()
