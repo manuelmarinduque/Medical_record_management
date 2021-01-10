@@ -72,7 +72,10 @@ def login():
 @auth_app.route("/hospital/create_doctor", methods=['POST'])
 @token_required
 def create_doctor_user(current_user):
-    if current_user.user_type == 'hospital':
+
+    if not current_user.is_verificated:
+        return jsonify({'message': 'You must verify your account. Please check your imbox.'})
+    elif current_user.user_type == 'hospital':
         try:
             create_doctor('doctor')
             return jsonify({'message':'New doctor user was created succesfully.'}), 200
@@ -80,3 +83,10 @@ def create_doctor_user(current_user):
             return make_response(f'This doctor user exists in the database', 401)
     else:
         return make_response("You don't have permissions to perform this task.", 401)
+
+@auth_app.route('/user/account_confirmation/<public_id>', methods=['PUT'])
+def account_confirmation(public_id):
+    user = get_user(public_id=public_id)
+    user.is_verificated = True
+    db.session.commit()
+    return jsonify({'message' : f'The user {user.name} has the account verificated.'})
