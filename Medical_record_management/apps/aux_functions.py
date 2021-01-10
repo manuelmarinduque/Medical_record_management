@@ -56,6 +56,7 @@ def get_extra_data():
     data['password'] = hashed_password
     return data
 
-def save(element):
-    db.session.add(element)
+def save(element=None):
+    if element:
+        db.session.add(element)
     db.session.commit()
