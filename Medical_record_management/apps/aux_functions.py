@@ -6,14 +6,14 @@ from Medical_record_management.models import Hospital, Patient, Doctor, Hospital
 from Medical_record_management.database import db
   
 
-def get_user(user_type, auth):
-    if user_type == 'patient':
-        user = Patient.query.filter_by(identification=auth.username).first()
-    elif user_type == 'hospital':
-        user = Hospital.query.filter_by(identification=auth.username).first()
-    elif user_type == 'doctor':
-        user = Doctor.query.filter_by(identification=auth.username).first()
-    return user
+def get_user(**kwargs):
+    for class_type in (Patient, Hospital, Doctor):
+        if 'auth' in kwargs:
+            user = class_type.query.filter_by(identification=kwargs['auth'].username).first()
+        elif 'public_id' in kwargs:
+            user = class_type.query.filter_by(public_id=kwargs['public_id'].username).first()
+        if user:
+            return user
 
 def create_patient_user():
     extra_data = get_extra_data()
