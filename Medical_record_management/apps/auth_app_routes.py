@@ -54,7 +54,7 @@ def create_doctor_user(current_user):
             create_doctor('doctor')
             return jsonify({'message': 'New doctor user was created successfully.'}), 200
         except IntegrityError:
-            return return jsonify({'message': 'This doctor user exists in the database.'})
+            return jsonify({'message': 'This doctor user exists in the database.'})
 
 @auth_app.route('/user/account_confirmation/<public_id>', methods=['PUT'])
 def account_confirmation(public_id):
@@ -89,7 +89,7 @@ def medical_register(current_user):
         if not current_user.is_verificated:
             return jsonify({'message': 'You must verify your account. Please check your email imbox.'})
         elif not current_user.password_changed:
-            return jsonify({'message': 'You must change your password. })
+            return jsonify({'message': 'You must change your password.'})
         else:
             doctor_specialities = get_doctor_specialities(current_user.id)
             print(doctor_specialities)
