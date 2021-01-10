@@ -1,11 +1,11 @@
 from flask import Blueprint, request, jsonify, make_response
-from werkzeug.security import check_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from jwt import encode
 from os import environ
 from sqlalchemy.exc import IntegrityError
 
 from Medical_record_management.database import db
-from .aux_functions import get_user, create_patient_user, create_hospital_user, create_doctor
+from .aux_functions import save, get_user, create_patient_user, create_hospital_user, create_doctor
 from .decorators import token_required
 
 import datetime
@@ -39,7 +39,8 @@ def login():
                     'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, 
                     environ.get('SECRET_KEY')
                 )
-                return jsonify({'token': token.decode('utf-8')})
+                return jsonify({'token': token.decode('utf-8'),
+                                'user_name': user.name})
             else:
                 return make_response('Incorrect password', 401)
         else:
@@ -56,7 +57,7 @@ def create_doctor_user(current_user):
     elif current_user.user_type == 'hospital':
         try:
             create_doctor('doctor')
-            return jsonify({'message':'New doctor user was created succesfully.'}), 200
+            return jsonify({'message':'New doctor user was created successfully.'}), 200
         except IntegrityError:
             return make_response(f'This doctor user exists in the database', 401)
     else:
@@ -66,5 +67,20 @@ def create_doctor_user(current_user):
 def account_confirmation(public_id):
     user = get_user(public_id=public_id)
     user.is_verificated = True
-    db.session.commit()
+    save()
     return jsonify({'message' : f'The user {user.name} has the account verificated.'})
+
+@auth_app.route('/user/change_password', methods=['PUT'])
+@token_required
+def change_password(current_user):
+    data = request.get_json()
+    if not data:
+        return make_response('Must enter a new password', 401)
+    else:
+        new_password = data.get('password')
+        if check_password_hash(current_user.password, new_password):
+            return make_response('The new password matches with the old one', 401)
+        else:
+            current_user.password = generate_password_hash(new_password, method='sha256')
+            save()
+            return jsonify({'message' : 'The password has changed successfully.'})
